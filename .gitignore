@@ -1,0 +1,4 @@
+# Mengabaikan file model Machine Learning & Log MLflow
+models/baseline_models/
+models/saved_models/
+mlruns/

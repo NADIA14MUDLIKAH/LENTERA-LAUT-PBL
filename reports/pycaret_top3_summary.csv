@@ -1,0 +1,19 @@
+Target Variable,Model,MAE,MSE,RMSE,R2,RMSLE,MAPE,TT (Sec)
+wave_height,Linear Regression,0.0095,0.0002,0.0136,0.9994,0.0083,0.0261,0.83
+wave_height,Light Gradient Boosting Machine,0.0099,0.0002,0.0145,0.9994,0.0085,0.0259,0.238
+wave_height,Extreme Gradient Boosting,0.0103,0.0002,0.0147,0.9994,0.0086,0.0274,0.324
+wind_speed_10m,Light Gradient Boosting Machine,1.5012,4.0274,2.0063,0.8324,0.3025,0.3652,0.178
+wind_speed_10m,Extra Trees Regressor,1.5019,4.0725,2.0174,0.8306,0.3028,0.3641,1.124
+wind_speed_10m,Random Forest Regressor,1.5062,4.0976,2.0236,0.8295,0.3039,0.3672,1.728
+ocean_current_velocity,Extra Trees Regressor,0.0918,0.0237,0.1538,0.9848,0.0802,0.1684,1.388
+ocean_current_velocity,Light Gradient Boosting Machine,0.1002,0.0286,0.1692,0.9816,0.085,0.1689,0.482
+ocean_current_velocity,Extreme Gradient Boosting,0.1026,0.0296,0.1721,0.981,0.0859,0.1798,0.154
+sea_surface_temperature,Extra Trees Regressor,0.0366,0.0027,0.0519,0.9985,0.0017,0.0012,0.654
+sea_surface_temperature,Random Forest Regressor,0.0385,0.0028,0.0527,0.9985,0.0017,0.0013,1.568
+sea_surface_temperature,Light Gradient Boosting Machine,0.0392,0.0028,0.0531,0.9985,0.0017,0.0013,0.376
+precipitation,Extra Trees Regressor,0.0995,0.084,0.2875,0.372,0.1417,0.7714,0.65
+precipitation,Light Gradient Boosting Machine,0.0991,0.0848,0.2887,0.3682,0.1422,0.7828,0.37
+precipitation,Gradient Boosting Regressor,0.099,0.0852,0.2893,0.3656,0.1403,0.7089,0.834
+visibility,Gradient Boosting Regressor,4013.1797,37908976.4474,6154.1778,0.7609,0.5376,0.5408,0.834
+visibility,Light Gradient Boosting Machine,4020.8074,38155362.716,6175.4955,0.7594,0.5308,0.5286,0.398
+visibility,Ridge Regression,3987.843,38803332.0,6227.0229,0.7553,0.5275,0.5028,0.014
