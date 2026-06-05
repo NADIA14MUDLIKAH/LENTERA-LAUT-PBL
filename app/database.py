@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 # 1. KONFIGURASI VARIABEL LINGKUNGAN (ENVIRONMENT)
 # =====================================================================
 # Memuat variabel rahasia dari file .env (seperti password dan URL database)
-load_dotenv()
+load_dotenv(override=True)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -21,12 +21,17 @@ if DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # =====================================================================
-# 2. INISIALISASI ENGINE ASYNCHRONOUS
+# 2. INISIALISASI ENGINE ASYNCHRONOUS (KHUSUS SUPABASE)
 # =====================================================================
-# create_async_engine memungkinkan koneksi non-blocking ke PostgreSQL.
-# Catatan: Ubah echo=True menjadi echo=False jika aplikasi sudah rilis (tahap produksi) 
-# agar log terminal tidak terlalu penuh oleh kueri SQL.
-engine = create_async_engine(DATABASE_URL, echo=True)
+# [PERBAIKAN]: Penambahan pool_pre_ping dan statement_cache_size untuk stabilitas Cloud
+engine = create_async_engine(
+    DATABASE_URL, 
+    echo=True, # Ubah ke False saat rilis (tahap produksi) agar terminal bersih
+    pool_pre_ping=True, # Otomatis mengecek apakah koneksi ke awan (cloud) terputus sebelum melakukan kueri
+    connect_args={
+        "statement_cache_size": 0 # Wajib ditambahkan agar asyncpg tidak bertabrakan dengan Supabase Pooler
+    }
+)
 
 # =====================================================================
 # 3. PEMBUATAN PABRIK SESI (SESSION FACTORY) & BASE MODEL

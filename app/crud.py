@@ -114,12 +114,14 @@ async def save_marine_weather(db: AsyncSession, id_location: int, df: pd.DataFra
     if not records:
         return
 
-    stmt = insert(MarineWeather).values(records)
+    # [PERBAIKAN EXECUTE BULK]: Menghapus .values(records) dari insert() 
+    stmt = insert(MarineWeather)
     stmt = stmt.on_conflict_do_nothing(
         index_elements=['id_location', 'time']
     )
 
-    await db.execute(stmt)
+    # Mengeksekusi secara batch dengan memasukkan records sebagai argumen kedua
+    await db.execute(stmt, records)
     await db.commit()
 
 async def get_marine_weather(db: AsyncSession, id_location: int, limit: int = 50):
@@ -160,6 +162,9 @@ async def save_prediction(db: AsyncSession, id_location: int, pred_results: dict
         wind_category=pred_results["wind_speed_10m"].get("kategori"),
         rain_category=pred_results["precipitation"].get("kategori"),
         visibility_category=pred_results["visibility"].get("kategori"),
+        
+        # PERBAIKAN: Menarik data warning_status agar tidak menjadi NULL di Supabase
+        warning_status=pred_results.get("warning_status")
     )
 
     db.add(category)

@@ -79,6 +79,7 @@ LOADED_MODELS = {}
 TARGETS = ["wave_height", "wind_speed_10m", "ocean_current_velocity", "sea_surface_temperature", "precipitation", "visibility"]
 
 def load_all_models():
+    # Pelindung: Jika model sudah ada di RAM, lewati proses baca disk
     if LOADED_MODELS:
         return 
 
@@ -93,10 +94,8 @@ def load_all_models():
             
         LOADED_MODELS[target] = joblib.load(model_path)
 
+
 def generate_forecast(X_live: pd.DataFrame) -> dict:
-    global LOADED_MODELS
-    
-    LOADED_MODELS = {} 
     load_all_models()
     
     results = {}
@@ -104,21 +103,22 @@ def generate_forecast(X_live: pd.DataFrame) -> dict:
     
     for target in TARGETS:
         model = LOADED_MODELS[target]
+        
+        # Batasi thread saat inferensi agar server tidak kelebihan beban CPU
         if hasattr(model, 'n_jobs'): 
             model.n_jobs = 1
         
         pred_val = float(model.predict(X_live_np)[0])
         
+        # Penanganan nilai negatif (tidak masuk akal jika tinggi gelombang/hujan minus)
         if target in ["precipitation", "wave_height", "wind_speed_10m", "visibility"] and pred_val < 0:
             pred_val = 0.0
             
         results[target] = pred_val
 
-    LOADED_MODELS.clear()
-    gc.collect() 
-    
+
     return {
-        "warning_status": hitung_risiko_gelombang(results["wave_height"]),  # <--- Sudah disinkronkan
+        "warning_status": hitung_risiko_gelombang(results["wave_height"]),
         "wave_height": {
             "value": round(results["wave_height"], 2),             
             "satuan": "meter",  
