@@ -2,4 +2,5 @@
 models/baseline_models/
 models/saved_models/
 .env
-app/__pycache__/
+app/__pycache__
+mlruns/
