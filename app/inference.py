@@ -28,19 +28,27 @@ def kategori_gelombang(w: float) -> str:
     elif w < 6.0:  return "Sangat Tinggi"
     else:          return "Ekstrem"
 
-def hitung_risiko_gelombang(w: float) -> str:
+def hitung_risiko_gelombang(w: float) -> dict:
     """
-    Sistem Peringatan Dini Risiko Keselamatan Pelayaran Berdasarkan Jurnal & Standar WMO.
-    - < 1.5 meter  : Aman bagi nelayan tradisional.
-    - 1.5 - 1.9 m  : Waspada (Retika dkk.: Rentan bagi kapal kecil/pesisir).
-    - >= 2.0 meter : Bahaya (WMO: Ancaman universal / Suwardjo dkk.: Kapal terbalik 45.59%).
+    Sistem Peringatan Dini Risiko Keselamatan Pelayaran.
+    Ambang batas didasarkan pada standar WMO (Kurniawan dkk.) 
+    dan batas aman nelayan tradisional (Retika dkk.).
     """
     if w < 1.5:
-        return "Aman"
+        return {
+            "status": "Aman",
+            "deskripsi": "Kondisi laut relatif aman untuk aktivitas melaut nelayan pesisir."
+        }
     elif w < 2.0:
-        return "Waspada (Rentan Kapal Kecil/Pesisir)"
+        return {
+            "status": "Waspada",
+            "deskripsi": "Gelombang berisiko bagi kapal nelayan kecil dan perahu tradisional."
+        }
     else:
-        return "Bahaya (Universal: Risiko Kapal Terbalik 45.59%)"
+        return {
+            "status": "Bahaya",
+            "deskripsi": "Gelombang melampaui 2 meter. Berpotensi membahayakan seluruh jenis kapal."
+        }
 
 def kategori_angin(ws: float) -> str:
     if ws < 0.3:    return "Calm"

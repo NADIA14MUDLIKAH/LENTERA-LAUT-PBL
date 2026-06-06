@@ -162,9 +162,7 @@ async def save_prediction(db: AsyncSession, id_location: int, pred_results: dict
         wind_category=pred_results["wind_speed_10m"].get("kategori"),
         rain_category=pred_results["precipitation"].get("kategori"),
         visibility_category=pred_results["visibility"].get("kategori"),
-        
-        # PERBAIKAN: Menarik data warning_status agar tidak menjadi NULL di Supabase
-        warning_status=pred_results.get("warning_status")
+        warning_status = pred_results["warning_status"]["status"]
     )
 
     db.add(category)
