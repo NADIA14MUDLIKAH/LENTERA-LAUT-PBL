@@ -76,5 +76,7 @@ class Category(Base):
     wind_category       = Column(String(50), nullable=True) 
     rain_category       = Column(String(50), nullable=True) 
     visibility_category = Column(String(50), nullable=True) 
+    
+    warning_status      = Column(String(255), nullable=True)
 
     prediction = relationship("Prediction", back_populates="categories")

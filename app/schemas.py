@@ -49,7 +49,7 @@ class PredictionOut(BaseModel):
     id_prediction: int
     id_location: int
     time_prediction: datetime
-    warning_status: str  # <--- Diubah agar sinkron dengan ERD
+    warning_status: dict
 
     # Atribut prediksi menggunakan sub-schema untuk validasi ketat
     wave_height: MetricWithCategory

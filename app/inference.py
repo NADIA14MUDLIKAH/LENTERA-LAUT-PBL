@@ -28,19 +28,27 @@ def kategori_gelombang(w: float) -> str:
     elif w < 6.0:  return "Sangat Tinggi"
     else:          return "Ekstrem"
 
-def hitung_risiko_gelombang(w: float) -> str:
+def hitung_risiko_gelombang(w: float) -> dict:
     """
-    Sistem Peringatan Dini Risiko Keselamatan Pelayaran Berdasarkan Jurnal & Standar WMO.
-    - < 1.5 meter  : Aman bagi nelayan tradisional.
-    - 1.5 - 1.9 m  : Waspada (Retika dkk.: Rentan bagi kapal kecil/pesisir).
-    - >= 2.0 meter : Bahaya (WMO: Ancaman universal / Suwardjo dkk.: Kapal terbalik 45.59%).
+    Sistem Peringatan Dini Risiko Keselamatan Pelayaran.
+    Ambang batas didasarkan pada standar WMO (Kurniawan dkk.) 
+    dan batas aman nelayan tradisional (Retika dkk.).
     """
     if w < 1.5:
-        return "Aman"
+        return {
+            "status": "Aman",
+            "deskripsi": "Kondisi laut relatif aman untuk aktivitas melaut nelayan pesisir."
+        }
     elif w < 2.0:
-        return "Waspada (Rentan Kapal Kecil/Pesisir)"
+        return {
+            "status": "Waspada",
+            "deskripsi": "Gelombang berisiko bagi kapal nelayan kecil dan perahu tradisional."
+        }
     else:
-        return "Bahaya (Universal: Risiko Kapal Terbalik 45.59%)"
+        return {
+            "status": "Bahaya",
+            "deskripsi": "Gelombang melampaui 2 meter. Berpotensi membahayakan seluruh jenis kapal."
+        }
 
 def kategori_angin(ws: float) -> str:
     if ws < 0.3:    return "Calm"
@@ -79,6 +87,7 @@ LOADED_MODELS = {}
 TARGETS = ["wave_height", "wind_speed_10m", "ocean_current_velocity", "sea_surface_temperature", "precipitation", "visibility"]
 
 def load_all_models():
+    # Pelindung: Jika model sudah ada di RAM, lewati proses baca disk
     if LOADED_MODELS:
         return 
 
@@ -93,10 +102,8 @@ def load_all_models():
             
         LOADED_MODELS[target] = joblib.load(model_path)
 
+
 def generate_forecast(X_live: pd.DataFrame) -> dict:
-    global LOADED_MODELS
-    
-    LOADED_MODELS = {} 
     load_all_models()
     
     results = {}
@@ -104,21 +111,22 @@ def generate_forecast(X_live: pd.DataFrame) -> dict:
     
     for target in TARGETS:
         model = LOADED_MODELS[target]
+        
+        # Batasi thread saat inferensi agar server tidak kelebihan beban CPU
         if hasattr(model, 'n_jobs'): 
             model.n_jobs = 1
         
         pred_val = float(model.predict(X_live_np)[0])
         
+        # Penanganan nilai negatif (tidak masuk akal jika tinggi gelombang/hujan minus)
         if target in ["precipitation", "wave_height", "wind_speed_10m", "visibility"] and pred_val < 0:
             pred_val = 0.0
             
         results[target] = pred_val
 
-    LOADED_MODELS.clear()
-    gc.collect() 
-    
+
     return {
-        "warning_status": hitung_risiko_gelombang(results["wave_height"]),  # <--- Sudah disinkronkan
+        "warning_status": hitung_risiko_gelombang(results["wave_height"]),
         "wave_height": {
             "value": round(results["wave_height"], 2),             
             "satuan": "meter",  

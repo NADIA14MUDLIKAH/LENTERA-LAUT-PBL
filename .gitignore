@@ -1,4 +1,6 @@
 # Mengabaikan file model Machine Learning & Log MLflow
 models/baseline_models/
 models/saved_models/
+.env
+app/__pycache__
 mlruns/
