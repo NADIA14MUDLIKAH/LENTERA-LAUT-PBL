@@ -47,3 +47,18 @@ export async function fetchLocations() {
     return []; // Kembalikan array kosong jika gagal agar map tidak crash
   }
 }
+
+export async function fetchHistory(locationName: string, limit: number = 5) {
+  const url = `http://127.0.0.1:8000/history?location=${locationName}&limit=${limit}`;
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!response.ok) throw new Error(`Gagal mengambil histori`);
+    return await response.json();
+  } catch (error) {
+    console.error("Error pada API History:", error);
+    return { history: [] }; // Kembalikan array kosong jika gagal
+  }
+}
