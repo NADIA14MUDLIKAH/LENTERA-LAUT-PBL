@@ -7,3 +7,5 @@ app/__pycache__
 mlflow.db
 mlruns/
 venv
+# Mengabaikan pengaturan VS Code lokal
+.vscode/
