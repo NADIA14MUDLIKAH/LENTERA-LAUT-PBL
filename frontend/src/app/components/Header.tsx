@@ -1,80 +1,79 @@
-import { Calendar, MapPin, AlertCircle, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-export default function Header() {
-  const [selectedDate, setSelectedDate] = useState('3 Juni 2026');
-  const [selectedLocation, setSelectedLocation] = useState('Sumenep');
-  const [selectedWarning, setSelectedWarning] = useState('Semua');
+interface HeaderProps {
+  onSearch: (location: string, date: string) => void;
+  isLoading: boolean;
+  locations: any[]; // Menerima data dinamis dari App.tsx
+}
+
+export default function Header({ onSearch, isLoading, locations }: HeaderProps) {
+  const today = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedLocation, setSelectedLocation] = useState('Surabaya');
+
+  // Mengatur nilai default dropdown jika data lokasi dari API sudah masuk
+  useEffect(() => {
+    if (locations.length > 0 && !locations.find(l => l.name === selectedLocation)) {
+      setSelectedLocation(locations[0].name);
+    }
+  }, [locations]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(selectedLocation, selectedDate);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
         Prediksi Cuaca Laut & Sistem Pendukung Keputusan
       </h1>
 
-      <div className="flex flex-wrap gap-4">
-        <div className="flex-1 min-w-64">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Calendar className="w-4 h-4 inline mr-1" />
-            Tanggal
+      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 items-end">
+        <div className="w-full md:w-1/3">
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+            <Calendar className="w-4 h-4 mr-2 text-[#088395]" /> Tanggal
           </label>
-          <div className="relative">
-            <select
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer hover:border-[#088395] focus:outline-none focus:ring-2 focus:ring-[#088395] focus:border-transparent transition-colors"
-            >
-              <option>3 Juni 2026</option>
-              <option>4 Juni 2026</option>
-              <option>5 Juni 2026</option>
-              <option>6 Juni 2026</option>
-              <option>7 Juni 2026</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-          </div>
+          <input
+            type="date"
+            min={today}
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#088395]"
+          />
         </div>
 
-        <div className="flex-1 min-w-64">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <MapPin className="w-4 h-4 inline mr-1" />
-            Lokasi
+        <div className="w-full md:w-1/3">
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+            <MapPin className="w-4 h-4 mr-2 text-[#088395]" /> Lokasi Perairan
           </label>
-          <div className="relative">
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer hover:border-[#088395] focus:outline-none focus:ring-2 focus:ring-[#088395] focus:border-transparent transition-colors"
-            >
-              <option>Sumenep</option>
-              <option>Surabaya</option>
-              <option>Probolinggo</option>
-              <option>Banyuwangi</option>
-              <option>Gresik</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-          </div>
+          <select
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#088395]"
+          >
+            {/* Opsi lokasi otomatis dirender dari database API */}
+            {locations.length > 0 ? (
+              locations.map((loc, index) => (
+                <option key={index} value={loc.name}>{loc.name}</option>
+              ))
+            ) : (
+              <option value="Surabaya">Surabaya</option> // Fallback
+            )}
+          </select>
         </div>
 
-        <div className="flex-1 min-w-64">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <AlertCircle className="w-4 h-4 inline mr-1" />
-            Tingkat Peringatan
-          </label>
-          <div className="relative">
-            <select
-              value={selectedWarning}
-              onChange={(e) => setSelectedWarning(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer hover:border-[#088395] focus:outline-none focus:ring-2 focus:ring-[#088395] focus:border-transparent transition-colors"
-            >
-              <option>Semua</option>
-              <option>Rendah</option>
-              <option>Sedang</option>
-              <option>Tinggi</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-          </div>
+        <div className="w-full md:w-1/3">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full px-6 py-2.5 bg-[#088395] text-white rounded-lg hover:bg-opacity-90 font-medium disabled:opacity-50"
+          >
+            {isLoading ? 'Mengambil Data...' : 'Cari Prediksi'}
+          </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
