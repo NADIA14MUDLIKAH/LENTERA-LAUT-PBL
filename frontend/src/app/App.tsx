@@ -121,17 +121,6 @@ export default function App() {
         // MERENDER KOMPONEN SAFETY GUIDE YANG BARU KITA BUAT
         return <SafetyGuide />;
 
-      case 'settings':
-        return (
-          <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 min-h-[70vh] flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Settings className="w-10 h-10 text-gray-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Pengaturan Sistem</h1>
-            <p className="text-gray-500 max-w-md">Konfigurasi akun dan preferensi batas peringatan.</p>
-          </div>
-        );
-
       default:
         return <div>Halaman tidak ditemukan.</div>;
     }
