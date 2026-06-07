@@ -1,115 +1,84 @@
-import { Search, Plus, Minus, Layers, MapPin } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import { fetchLocations } from '../services/api';
+import { useState, useEffect } from "react";
+import { Search, MapPin } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L, { LatLngBoundsExpression } from "leaflet";
 
-// Perbaikan bug icon default Leaflet di React/Vite
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
-
-const DefaultIcon = L.icon({
-  iconUrl,
-  iconRetinaUrl,
-  shadowUrl,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Tipe data berdasarkan JSON Swagger Anda
-interface LocationData {
-  id_location: number;
-  name: string;
-  latitude: number;
-  longitude: number;
-}
+// 1. LETAKKAN BOUNDS JAWA TIMUR DI LUAR KOMPONEN (Paling Atas)
+const eastJavaBounds: LatLngBoundsExpression = [
+  [-8.9, 110.8], // Batas Barat Daya
+  [-6.6, 114.7]  // Batas Timur Laut
+];
 
 export default function MapSection() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [locations, setLocations] = useState<LocationData[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<string>('Memuat peta...');
-
-  // Mengambil data lokasi saat komponen pertama kali dimuat
-  useEffect(() => {
-    async function getLocations() {
-      const data = await fetchLocations();
-      setLocations(data);
-      if (data.length > 0) {
-        setSelectedLocation('Pilih titik di peta');
-      } else {
-        setSelectedLocation('Gagal memuat lokasi');
-      }
-    }
-    getLocations();
-  }, []);
-
-  // Pusat awal peta (koordinat Jawa Timur)
-  const centerPos: [number, number] = [-7.5360639, 112.2384017]; 
+  // Tempatkan state Anda di sini (misal untuk data lokasi dari API)
+  const [locations, setLocations] = useState([]);
+  
+  // 2. AMBIL TANGGAL HARI INI DI DALAM KOMPONEN
+  const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="relative bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-      
-      {/* UI Overlay: Bar Pencarian */}
-      <div className="absolute top-4 left-4 z-[400] w-72">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Cari Lokasi Peta..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white rounded-lg shadow-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#088395] focus:border-transparent"
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      {/* JUDUL SECTION */}
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Sistem Pendukung Keputusan</h2>
+
+      {/* 3. BARIS INPUT (TANGGAL, LOKASI, TOMBOL CARI SEJAJAR) */}
+      <div className="flex flex-col md:flex-row gap-4 items-end mb-6">
+        
+        {/* Input Tanggal */}
+        <div className="w-full md:w-1/3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">📅 Tanggal</label>
+          <input 
+            type="date" 
+            min={today} // Membatasi tanggal mulai hari ini
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none"
           />
         </div>
+
+        {/* Dropdown Lokasi (Input search text & Dropdown Peringatan lama sudah dihapus) */}
+        <div className="w-full md:w-1/3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">📍 Lokasi Perairan</label>
+          <select 
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none"
+          >
+            <option value="">-- Pilih Lokasi --</option>
+            <option value="Surabaya">Surabaya</option>
+            <option value="Gresik">Gresik</option>
+            <option value="Banyuwangi">Banyuwangi</option>
+            <option value="Tuban">Tuban</option>
+            <option value="Madura">Selat Madura</option>
+          </select>
+        </div>
+
+        {/* Tombol Cari Prediksi (Sejajar di paling kanan) */}
+        <div className="w-full md:w-1/3">
+          <button 
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium p-2 rounded-md transition-colors shadow-sm"
+          >
+            Cari Prediksi
+          </button>
+        </div>
+
       </div>
 
-      {/* Kontainer Peta Interaktif Leaflet */}
-      <div className="h-[450px] w-full z-0">
-        <MapContainer 
-          center={centerPos} 
-          zoom={8} 
-          scrollWheelZoom={true} 
-          style={{ height: '100%', width: '100%' }}
+      {/* 4. KOPLENG MAP CONTAINER (DIKUNCI KE JAWA TIMUR) */}
+      <div className="w-full h-[450px] rounded-lg overflow-hidden border border-gray-200 shadow-inner">
+        <MapContainer
+          center={[-7.75, 112.75]} // Titik tengah Jatim
+          zoom={8}                 // Zoom level awal
+          minZoom={7}              // Batas zoom out maksimal
+          maxBounds={eastJavaBounds} // Mengunci peta di area Jatim
+          maxBoundsViscosity={1.0}   // Efek membal kuat jika digeser keluar batas
+          className="w-full h-full"
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           
-          {/* Mapping marker berdasarkan data API */}
-          {locations.map((loc) => (
-            <Marker 
-              key={loc.id_location} 
-              position={[loc.latitude, loc.longitude]}
-              eventHandlers={{
-                click: () => {
-                  setSelectedLocation(loc.name);
-                },
-              }}
-            >
-              <Popup>
-                <div className="text-center">
-                  <strong className="block text-[#088395]">{loc.name}</strong>
-                  <span className="text-xs text-gray-500">Lat: {loc.latitude.toFixed(2)}, Lon: {loc.longitude.toFixed(2)}</span>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
-      </div>
+          {/* Render marker lokasi Anda di sini */}
 
-      {/* UI Overlay: Indikator Lokasi Terpilih */}
-      <div className="absolute bottom-4 left-4 z-[400] bg-white px-4 py-2.5 rounded-lg shadow-lg border border-gray-100 flex items-center gap-2">
-        <MapPin className="w-5 h-5 text-[#088395]" />
-        <span className="text-sm font-semibold text-gray-800">
-          Titik: {selectedLocation}
-        </span>
+        </MapContainer>
       </div>
     </div>
   );
