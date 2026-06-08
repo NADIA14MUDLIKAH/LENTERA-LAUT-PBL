@@ -31,8 +31,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler # <-- Import Schedul
 # =====================================================================
 # 3. LOCAL MODULE IMPORTS
 # =====================================================================
-from .database import engine, Base, get_db, AsyncSessionLocal
-from .crud import (
+from database import engine, Base, get_db, AsyncSessionLocal
+from crud import (
     fetch_data,
     get_or_create_location,
     get_all_locations,
@@ -43,8 +43,8 @@ from .crud import (
     get_prediction_history,
     get_prediction_by_id,
 )
-from .inference import generate_forecast, load_all_models, hitung_risiko_gelombang
-from .schemas import (
+from inference import generate_forecast, load_all_models, hitung_risiko_gelombang
+from schemas import (
     LocationOut, 
     MarineWeatherOut, 
     PredictResponse, 

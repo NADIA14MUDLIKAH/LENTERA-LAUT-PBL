@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: 
+      context: .  # Arahkan ke folder app tempat Dockerfile-mu berada
+      dockerfile: app/Dockerfile
+    container_name: lenterapi_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres.fyrvlmatpyqgfcdohylj:hCXx9TtAQlYyPvFp@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres
+      - SYNC_DATABASE_URL=postgresql://postgres.fyrvlmatpyqgfcdohylj:hCXx9TtAQlYyPvFp@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres
+
+  frontend:
+    build: 
+      context: ./frontend # Arahkan ke folder frontend
+      dockerfile: Dockerfile
+    container_name: lenterapi_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend

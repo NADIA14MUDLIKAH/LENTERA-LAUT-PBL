@@ -9,7 +9,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 from sqlalchemy.dialects.postgresql import insert
 
-from .models import Location, MarineWeather, Prediction, Category
+from models import Location, MarineWeather, Prediction, Category
 
 # =====================================================================
 # 1. FETCH DATA OPEN-METEO
