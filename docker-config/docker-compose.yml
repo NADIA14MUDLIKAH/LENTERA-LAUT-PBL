@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Container untuk Backend (Python + ML)
+  backend:
+    build:
+      context: ..                      # Arahkan ke folder root (LENTERA-LAUT-PBL)
+      dockerfile: docker-config/Dockerfile.backend
+    ports:
+      - "8000:8000"                    # Mapping port API
+    volumes:
+      - ..:/app                        # Sinkronisasi folder root ke dalam container
+    environment:
+      - PYTHONUNBUFFERED=1             # Agar log muncul real-time di terminal
+    networks:
+      - lentera-net
+
+  # Container untuk Frontend (Node.js + React)
+  frontend:
+    build:
+      context: ..                      # Arahkan ke folder root
+      dockerfile: docker-config/Dockerfile.frontend
+    ports:
+      - "5173:5173"                    # Mapping port Vite
+    volumes:
+      - ../frontend:/app/frontend      # Sinkronisasi folder frontend
+      - /app/frontend/node_modules     # PERBAIKAN: Melindungi node_modules container agar tidak tertimpa lokal
+    depends_on:
+      - backend                        # Pastikan backend siap lebih dulu
+    networks:
+      - lentera-net
+
+# Jaringan internal agar backend dan frontend bisa saling panggil
+networks:
+  lentera-net:
+    driver: bridge
