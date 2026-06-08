@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigation, Waves, Wind, CloudRain, Thermometer, Eye, History, Settings } from 'lucide-react';
+import { Navigation, Waves, Wind, CloudRain, Thermometer, Eye, History } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import MapSection from './components/MapSection';
@@ -7,8 +7,9 @@ import WeatherCard from './components/WeatherCard';
 import WeatherChart from './components/WeatherChart';
 import DecisionSupport from './components/DecisionSupport';
 import SafetyGuide from './components/SafetyGuide';
+import HistoryTable from './components/HistoryTable'; // [BARU] Import komponen tabel
 
-// Import KETIGA fungsi API
+// Import KETIGA fungsi API dari service/api.ts
 import { fetchPrediction, fetchLocations, fetchHistory } from './services/api';
 
 export default function App() {
@@ -16,7 +17,14 @@ export default function App() {
 
   const [locations, setLocations] = useState<any[]>([]);
   const [predictionData, setPredictionData] = useState<any>(null);
-  const [chartData, setChartData] = useState<any[]>([]); // State khusus untuk grafik gabungan
+  
+  // State untuk grafik gabungan dan garis pemisah
+  const [chartData, setChartData] = useState<any[]>([]); 
+  const [waktuSaatIniLabel, setWaktuSaatIniLabel] = useState<string>(''); 
+  
+  // [BARU] State untuk menyimpan data riwayat mentah (untuk tabel)
+  const [rawHistoryData, setRawHistoryData] = useState<any[]>([]); 
+  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,18 +43,38 @@ export default function App() {
     setError('');
 
     try {
-      // Menjalankan API Prediksi dan Histori secara bersamaan (Paralel)
+      // Menjalankan API Prediksi dan Histori secara bersamaan
       const [predData, histData] = await Promise.all([
         fetchPrediction(locationName),
-        fetchHistory(locationName, 5) // Ambil 5 data ke belakang
+        fetchHistory(locationName, 24) // [DIUBAH] Ambil 24 data mentah ke belakang agar tabel penuh
       ]);
 
       setPredictionData(predData);
+      
+      // [BARU] Simpan data aslinya (sebelum dibalik) untuk dipakai di HistoryTable
+      setRawHistoryData(histData?.history || []);
 
-      // Gabungkan array history (masa lalu) dengan prediction (masa depan)
-      const historyArray = histData?.history || [];
+      // 1. Balik urutan history agar kronologis (kiri ke kanan)
+      // Menggunakan [...array] agar tidak merusak data aslinya
+      const historyArray = [...(histData?.history || [])].reverse(); 
+      
+      // 2. Gabungkan array history (masa lalu) dengan prediction (masa depan)
       const combinedData = [...historyArray, predData.prediction];
-      setChartData(combinedData); // Oper ini ke WeatherChart!
+      setChartData(combinedData); 
+
+      // 3. Logika mencari label waktu saat ini untuk garis merah di grafik
+      // Karena historyArray sudah dibalik, elemen terakhir adalah jam saat ini (T0)
+      if (historyArray.length > 0) {
+        const titikSaatIni = historyArray[historyArray.length - 1];
+        
+        // Pastikan field waktunya sesuai dengan response API (time)
+        const dateObj = new Date(titikSaatIni.time || titikSaatIni.time_prediction); 
+        const namaHari = dateObj.toLocaleDateString('id-ID', { weekday: 'short' });
+        const jam = dateObj.getHours().toString().padStart(2, '0') + ':00';
+        
+        // Simpan dengan format "Sen 17:00" agar cocok dengan sumbu X di grafik
+        setWaktuSaatIniLabel(`${namaHari} ${jam}`);
+      }
 
     } catch (err) {
       setError('Gagal mengambil data. Pastikan server API menyala.');
@@ -99,8 +127,9 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* OPERKAN DATA GABUNGAN KE CHART */}
-              <WeatherChart marineData={chartData} />
+              {/* Operkan data history+prediksi dan label waktunya ke Chart */}
+              <WeatherChart marineData={chartData} waktuSaatIni={waktuSaatIniLabel} />
+              
               <DecisionSupport warningStatus={predictionData?.prediction?.warning_status} />
             </div>
           </>
@@ -108,17 +137,14 @@ export default function App() {
 
       case 'history':
         return (
-          <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 min-h-[70vh] flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
-              <History className="w-10 h-10 text-indigo-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Riwayat Cuaca Lanjutan</h1>
-            <p className="text-gray-500 max-w-md">Laporan bulanan dan data unduhan lengkap akan segera hadir.</p>
-          </div>
+          // [DIUBAH] Menampilkan komponen HistoryTable yang sebenarnya
+          <HistoryTable 
+            historyData={rawHistoryData} 
+            locationName={predictionData?.location?.name} 
+          />
         );
 
       case 'guide':
-        // MERENDER KOMPONEN SAFETY GUIDE YANG BARU KITA BUAT
         return <SafetyGuide />;
 
       default:

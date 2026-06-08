@@ -47,10 +47,11 @@ export default function MapSection({ locations }: MapSectionProps) {
             });
 
             return (
-              <Marker key={index} position={[loc.lat, loc.lon]} icon={customIcon}>
+              // [PERBAIKAN]: Menggunakan loc.latitude dan loc.longitude sesuai dengan output API FastAPI
+              <Marker key={index} position={[loc.latitude, loc.longitude]} icon={customIcon}>
                 <Popup>
                   <div className="font-bold text-[#088395]">{loc.name}</div>
-                  <div className="text-xs text-gray-600">Lat: {loc.lat}, Lon: {loc.lon}</div>
+                  <div className="text-xs text-gray-600">Lat: {loc.latitude}, Lon: {loc.longitude}</div>
                   {loc.status && <div className="text-xs font-semibold mt-1">Status: {loc.status}</div>}
                 </Popup>
               </Marker>

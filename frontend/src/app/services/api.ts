@@ -48,17 +48,31 @@ export async function fetchLocations() {
   }
 }
 
+// Tambahkan fungsi ini di bawah fetchLocations
+
 export async function fetchHistory(locationName: string, limit: number = 5) {
-  const url = `http://127.0.0.1:8000/history?location=${locationName}&limit=${limit}`;
+  // Menggunakan endpoint /marine-weather sesuai dengan Swagger UI kamu
+  const url = `http://127.0.0.1:8000/marine-weather?location=${locationName}&limit=${limit}`;
+  
   try {
     const response = await fetch(url, {
       method: 'GET',
-      headers: { 'Accept': 'application/json' }
+      headers: {
+        'Accept': 'application/json'
+      }
     });
-    if (!response.ok) throw new Error(`Gagal mengambil histori`);
-    return await response.json();
+
+    if (!response.ok) {
+      throw new Error(`Gagal mengambil data history. Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Karena API aslimu sepertinya mengembalikan array langsung (berdasarkan Swagger), 
+    // kita bungkus ke dalam object { history: data } agar cocok dengan App.tsx
+    return { history: data }; 
   } catch (error) {
     console.error("Error pada API History:", error);
-    return { history: [] }; // Kembalikan array kosong jika gagal
+    // Kembalikan struktur default jika gagal agar aplikasi tidak crash
+    return { history: [] }; 
   }
 }

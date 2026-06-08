@@ -125,9 +125,15 @@ async def save_marine_weather(db: AsyncSession, id_location: int, df: pd.DataFra
     await db.commit()
 
 async def get_marine_weather(db: AsyncSession, id_location: int, limit: int = 50):
+    # [PERBAIKAN]: Menyegel waktu agar tidak menarik data masa depan
+    waktu_saat_ini = datetime.now()
+    
     result = await db.execute(
         select(MarineWeather)
-        .where(MarineWeather.id_location == id_location)
+        .where(
+            MarineWeather.id_location == id_location,
+            MarineWeather.time <= waktu_saat_ini # <-- Segel Waktu
+        )
         .order_by(desc(MarineWeather.time))
         .limit(limit)
     )
@@ -172,9 +178,15 @@ async def save_prediction(db: AsyncSession, id_location: int, pred_results: dict
     return prediction
 
 async def get_prediction_history(db: AsyncSession, id_location: int, limit: int = 10):
+    # [PERBAIKAN]: Menyegel waktu prediksi agar tidak menarik riwayat masa depan
+    waktu_saat_ini = datetime.now()
+    
     result = await db.execute(
         select(Prediction)
-        .where(Prediction.id_location == id_location)
+        .where(
+            Prediction.id_location == id_location,
+            Prediction.time_prediction <= waktu_saat_ini # <-- Segel Waktu
+        )
         .order_by(desc(Prediction.time_prediction))
         .options(selectinload(Prediction.categories)) 
         .limit(limit)
