@@ -1,0 +1,11 @@
+FROM node:18-alpine
+WORKDIR /app
+# Copy semua file ke dalam container
+COPY . .
+# Instal dependensi di dalam folder frontend
+RUN cd frontend && npm install
+# Jalankan menggunakan npx vite
+WORKDIR /app/frontend
+EXPOSE 5173
+CMD ["npx", "vite", "--host"]
+
